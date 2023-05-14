@@ -75,8 +75,9 @@ async function loginWeb(account, password) {
             return (_parsedURL.protocol === 'http:') ? httpAgent : httpsAgent;
         },
     };
-    logger.debug('calling ' + options.body);
-    const response = await fetch(BASE_URL_WEB + 'user/site/login', options);
+    const loginUrl = BASE_URL_WEB + 'user/site/login';
+    logger.debug('calling ' + loginUrl + ' for ' + account);
+    const response = await fetch(loginUrl, options);
     if (response.ok) {
         const data = await response.json();
         if (data.errcode === '0') {
@@ -117,9 +118,9 @@ async function exportDataWeb(account, password, deviceId) {
                 return (_parsedURL.protocol === 'http:') ? httpAgent : httpsAgent;
             },
         };
-        logger.debug('calling ' + options.headers.cookie);
-        logger.debug('calling ' + options.body);
-        const response = await fetch(BASE_URL_WEB + 'index/get_data', options);
+        const getDataUrl = BASE_URL_WEB + 'index/get_data';
+        logger.debug('calling ' + getDataUrl + ' / ' + options.body);
+        const response = await fetch(getDataUrl, options);
         if (response.ok) {
             const data = await response.json();
             if (data.errcode === '0') {
