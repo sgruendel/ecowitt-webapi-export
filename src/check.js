@@ -45,5 +45,39 @@ async function findMissingData() {
     db.disconnect();
 }
 
+async function findDuplicateData() {
+
+    const pageSize = 1000;
+    let start = 0;
+    let reportstoRead = true;
+    while (reportstoRead) {
+        logger.info(start + ' ...');
+        const reports = await db.Report.find().sort({dateutc: 1}).skip(start).limit(pageSize + 1).exec();
+
+        let deleted = false;
+        for (let i = 0; i < reports.length; i++) {
+            const report = reports[i];
+            const sameDateReports = await db.Report.find({dateutc: report.dateutc}).sort({dateutc: 1}).exec();
+            if (sameDateReports.length > 1) {
+                const sameDateReport = sameDateReports[0];
+                logger.info('deleting 1 of ' + sameDateReports.length + ' at ' +
+                    moment(sameDateReport.dateutc).format(DATE_TIME_FORMAT));
+                const res = await db.Report.deleteOne({ _id: sameDateReport._id });
+                console.log(res);
+                deleted = deleted || (res.deletedCount > 0);
+            }
+        }
+
+        if (!deleted) {
+            start += pageSize;
+        }
+        reportstoRead = reports.length > pageSize;
+    }
+    db.disconnect();
+}
+
 // find reports more than 10 minutes apart and log them
 findMissingData();
+
+// delete data from same date, happened during development without unique index
+// findDuplicateData();
