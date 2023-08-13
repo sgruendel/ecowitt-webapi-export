@@ -8,7 +8,7 @@ const querystring = require('querystring');
 const winston = require('winston');
 
 const logger = winston.createLogger({
-    level: process.env.LOG_LEVEL || 'debug',
+    level: process.env.LOG_LEVEL || 'info',
     transports: [
         new winston.transports.Console({
             format: winston.format.simple(),
@@ -96,10 +96,12 @@ async function loginWeb(account, password) {
 async function exportDataWeb(account, password, deviceId) {
     const cookies = await loginWeb(account, password);
 
+    const latestReport = (await db.Report.find({}).sort({ dateutc: -1 }).limit(1))[0];
+    logger.info('latest report ' + latestReport.dateutc);
     let allPromises = [];
 
     let today = moment();
-    for (let day = moment('2023-04-23'); day.isBefore('2023-05-15'); day.add(1, 'days')) {
+    for (let day = moment(latestReport.dateutc); day.isBefore(today); day.add(1, 'days')) {
         const params = new URLSearchParams();
         params.append('device_id', deviceId);
         params.append('is_list', 0);
@@ -160,9 +162,20 @@ async function exportDataWeb(account, password, deviceId) {
                             battery: data.list.ws1900batt_dash.list.ws1900batt[i],
                         };
 
-                        allPromises.push(db.Report.create(report));
+                        const promise = db.Report.create(report)
+                            .then(doc => logger.debug('inserted ' + doc.dateutc))
+                            .catch(err => {
+                                if (err.code === 11000) {
+                                    // logger.error('duplicate report for ' + report.dateutc);
+                                } else {
+                                    throw err;
+                                }
+                            });
+                        allPromises.push(promise);
                     }
                 }
+            } else {
+                logger.error(data.errcode, data);
             }
         }
     }
