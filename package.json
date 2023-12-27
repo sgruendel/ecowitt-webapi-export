@@ -1,66 +1,66 @@
 {
-  "name": "ecowitt-webapi-export",
-  "version": "1.0.0",
-  "description": "Export Ecowitt weather data to mongodb via webapi",
-  "main": "index.js",
-  "scripts": {
-    "reinstall": "rm -rf ./node_modules && npm install",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/sgruendel/ecowitt-webapi-export.git"
-  },
-  "keywords": [
-    "ecowitt",
-    "weather",
-    "mongodb"
-  ],
-  "author": "Stefan Gründel",
-  "license": "GPL-3.0",
-  "bugs": {
-    "url": "https://github.com/sgruendel/ecowitt-webapi-export/issues"
-  },
-  "homepage": "https://github.com/sgruendel/ecowitt-webapi-export#readme",
-"dependencies": {
-    "moment": "^2.29.4",
-    "mongoose": "^6.11.5",
-    "node-fetch": "^2.6.12",
-    "winston": "^3.10.0"
-  },
-  "devDependencies": {
-    "chai": "^4.3.7",
-    "eslint": "^8.47.0",
-    "eslint-config-strongloop": "^2.1.0",
-    "mocha": "^10.2.0",
-    "nyc": "^15.1.0"
-  },
-  "eslintConfig": {
-    "parserOptions": {
-      "ecmaVersion": 2017
+    "name": "ecowitt-webapi-export",
+    "version": "1.0.0",
+    "description": "Export Ecowitt weather data to mongodb via webapi",
+    "main": "export.js",
+    "scripts": {
+        "reinstall": "rm -rf ./node_modules && npm install",
+        "test": "echo \"Error: no test specified\" && exit 1"
     },
-    "extends": "strongloop",
-    "env": {
-      "es6": true,
-      "node": true,
-      "mocha": true
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/sgruendel/ecowitt-webapi-export.git"
     },
-    "rules": {
-      "indent": [
-        "error",
-        4
-      ],
-      "max-len": [
-        "error",
-        120,
-        4,
-        {
-          "ignoreComments": true,
-          "ignoreUrls": true,
-          "ignoreStrings": true,
-          "ignorePattern": "^\\s*var\\s.+=\\s*(require\\s*\\()|(/)"
+    "keywords": [
+        "ecowitt",
+        "weather",
+        "mongodb"
+    ],
+    "author": "Stefan Gründel",
+    "license": "GPL-3.0",
+    "bugs": {
+        "url": "https://github.com/sgruendel/ecowitt-webapi-export/issues"
+    },
+    "homepage": "https://github.com/sgruendel/ecowitt-webapi-export#readme",
+    "dependencies": {
+        "moment": "^2.29.4",
+        "mongoose": "^8.0.3",
+        "node-fetch": "^2.7.0",
+        "winston": "^3.11.0"
+    },
+    "devDependencies": {
+        "chai": "^4.3.7",
+        "eslint": "^8.56.0",
+        "eslint-config-strongloop": "^2.1.0",
+        "mocha": "^10.2.0",
+        "nyc": "^15.1.0"
+    },
+    "eslintConfig": {
+        "parserOptions": {
+            "ecmaVersion": 2020
+        },
+        "extends": "strongloop",
+        "env": {
+            "es6": true,
+            "node": true,
+            "mocha": true
+        },
+        "rules": {
+            "indent": [
+                "error",
+                4
+            ],
+            "max-len": [
+                "error",
+                120,
+                4,
+                {
+                    "ignoreComments": true,
+                    "ignoreUrls": true,
+                    "ignoreStrings": true,
+                    "ignorePattern": "^\\s*var\\s.+=\\s*(require\\s*\\()|(/)"
+                }
+            ]
         }
-      ]
     }
-  }
 }
