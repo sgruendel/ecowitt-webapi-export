@@ -36,7 +36,7 @@ const BASE_URL_WEB = 'https://webapi.www.ecowitt.net/';
 
 function convertTempToF(t, unit) {
     if (unit === '℃') {
-        return (t * 9 / 5) + 32;
+        return (t * 9) / 5 + 32;
     } else {
         throw Error('unsupported unit: ' + unit);
     }
@@ -44,9 +44,12 @@ function convertTempToF(t, unit) {
 
 async function exportDataRealApi(deviceId) {
     const options = {
-        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36' },
-        agent: _parsedURL => {
-            return (_parsedURL.protocol === 'http:') ? httpAgent : httpsAgent;
+        headers: {
+            'User-Agent':
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
+        },
+        agent: (_parsedURL) => {
+            return _parsedURL.protocol === 'http:' ? httpAgent : httpsAgent;
         },
     };
     const qs = {
@@ -71,8 +74,8 @@ async function loginWeb(account, password) {
     const options = {
         method: 'POST',
         body: params,
-        agent: _parsedURL => {
-            return (_parsedURL.protocol === 'http:') ? httpAgent : httpsAgent;
+        agent: (_parsedURL) => {
+            return _parsedURL.protocol === 'http:' ? httpAgent : httpsAgent;
         },
     };
     const loginUrl = BASE_URL_WEB + 'user/site/login';
@@ -84,11 +87,13 @@ async function loginWeb(account, password) {
             const setCookie = response.headers.raw()['set-cookie'];
             logger.debug(setCookie);
 
-            return setCookie.map((entry) => {
-                const parts = entry.split(';');
-                const cookiePart = parts[0];
-                return cookiePart;
-            }).join(';');
+            return setCookie
+                .map((entry) => {
+                    const parts = entry.split(';');
+                    const cookiePart = parts[0];
+                    return cookiePart;
+                })
+                .join(';');
         }
     }
 }
@@ -116,8 +121,8 @@ async function exportDataWeb(account, password, deviceId) {
             },
             method: 'POST',
             body: params,
-            agent: _parsedURL => {
-                return (_parsedURL.protocol === 'http:') ? httpAgent : httpsAgent;
+            agent: (_parsedURL) => {
+                return _parsedURL.protocol === 'http:' ? httpAgent : httpsAgent;
             },
         };
         const getDataUrl = BASE_URL_WEB + 'index/get_data';
@@ -162,16 +167,22 @@ async function exportDataWeb(account, password, deviceId) {
                             battery: data.list.ws1900batt_dash.list.ws1900batt[i],
                         };
 
-                        const promise = db.Report.create(report)
-                            .then(doc => logger.debug('inserted ' + doc.dateutc))
-                            .catch(err => {
-                                if (err.code === 11000) {
-                                    // logger.error('duplicate report for ' + report.dateutc);
-                                } else {
-                                    throw err;
-                                }
-                            });
-                        allPromises.push(promise);
+                        if (isNaN(report.temp)) {
+                            logger.info('skipping ' + i, report);
+                        } else {
+                            const promise = db.Report.create(report)
+                                .then((doc) => logger.debug('inserted ' + doc.dateutc))
+                                .catch((err) => {
+                                    if (err.code === 11000) {
+                                        // logger.error('duplicate report for ' + report.dateutc);
+                                    } else {
+                                        logger.error('error writing report', err);
+                                        logger.error('report', report);
+                                        throw err;
+                                    }
+                                });
+                            allPromises.push(promise);
+                        }
                     }
                 }
             } else {
