@@ -1,7 +1,5 @@
-'use strict';
-
-const moment = require('moment');
-const winston = require('winston');
+import moment from 'moment';
+import winston from 'winston';
 
 const logger = winston.createLogger({
     level: process.env.LOG_LEVEL || 'debug',
@@ -13,22 +11,25 @@ const logger = winston.createLogger({
     exitOnError: false,
 });
 
-const db = require('./db');
+import * as db from './db.js';
 
 const DATE_FORMAT = 'YYYY-MM-DD';
 const TIME_FORMAT = 'HH:mm:ss';
 const DATE_TIME_FORMAT = DATE_FORMAT + ' ' + TIME_FORMAT;
 
 async function findMissingData() {
-
     const pageSize = 1000;
     let start = 0;
     let reportstoRead = true;
     while (reportstoRead) {
-        const reports = await db.Report.find().sort({dateutc: -1}).skip(start).limit(pageSize + 1).exec();
+        const reports = await db.Report.find()
+            .sort({ dateutc: -1 })
+            .skip(start)
+            .limit(pageSize + 1)
+            .exec();
 
         let prevDate;
-        reports.forEach(report => {
+        reports.forEach((report) => {
             const date = moment(report.dateutc);
             if (prevDate) {
                 const compDate = moment(date).add(10, 'minutes');
@@ -46,25 +47,32 @@ async function findMissingData() {
 }
 
 async function findDuplicateData() {
-
     const pageSize = 1000;
     let start = 0;
     let reportstoRead = true;
     while (reportstoRead) {
         logger.info(start + ' ...');
-        const reports = await db.Report.find().sort({dateutc: 1}).skip(start).limit(pageSize + 1).exec();
+        const reports = await db.Report.find()
+            .sort({ dateutc: 1 })
+            .skip(start)
+            .limit(pageSize + 1)
+            .exec();
 
         let deleted = false;
         for (let i = 0; i < reports.length; i++) {
             const report = reports[i];
-            const sameDateReports = await db.Report.find({dateutc: report.dateutc}).sort({dateutc: 1}).exec();
+            const sameDateReports = await db.Report.find({ dateutc: report.dateutc }).sort({ dateutc: 1 }).exec();
             if (sameDateReports.length > 1) {
                 const sameDateReport = sameDateReports[0];
-                logger.info('deleting 1 of ' + sameDateReports.length + ' at ' +
-                    moment(sameDateReport.dateutc).format(DATE_TIME_FORMAT));
+                logger.info(
+                    'deleting 1 of ' +
+                        sameDateReports.length +
+                        ' at ' +
+                        moment(sameDateReport.dateutc).format(DATE_TIME_FORMAT),
+                );
                 const res = await db.Report.deleteOne({ _id: sameDateReport._id });
                 console.log(res);
-                deleted = deleted || (res.deletedCount > 0);
+                deleted = deleted || res.deletedCount > 0;
             }
         }
 

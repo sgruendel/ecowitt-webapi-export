@@ -1,11 +1,8 @@
-'use strict';
+import * as mongoose from 'mongoose';
 
-const mongoose = require('mongoose');
 mongoose.connect('mongodb://127.0.0.1:27017/ecowitt');
 
-var exports = module.exports = {};
-
-exports.disconnect = mongoose.disconnect;
+export { disconnect } from 'mongoose';
 
 /*
  PASSKEY: '4885BE701185AF2C83886E1E37F74F2D',
@@ -35,123 +32,125 @@ exports.disconnect = mongoose.disconnect;
   freq: '868M',
   model: 'WS1900'
 */
-const report = new mongoose.Schema({
-    deviceId: {
-        type: Number,
-        required: true,
+const report = new mongoose.Schema(
+    {
+        deviceId: {
+            type: Number,
+            required: true,
+        },
+        dateutc: {
+            type: Date,
+            required: true,
+        },
+        temp: {
+            type: Number,
+            required: true,
+        },
+        sendible_temp: {
+            type: Number,
+            required: true,
+        },
+        drew_temp: {
+            type: Number,
+            required: true,
+        },
+        temp_unit: {
+            type: String,
+            required: true,
+        },
+        humidity: {
+            type: Number,
+            required: true,
+        },
+        humidity_unit: {
+            type: String,
+            required: true,
+        },
+        tempin: {
+            type: Number,
+            required: true,
+        },
+        tempin_unit: {
+            type: String,
+            required: true,
+        },
+        humidityin: {
+            type: Number,
+            required: true,
+        },
+        humidityin_unit: {
+            type: String,
+            required: true,
+        },
+        rainrate: {
+            type: Number,
+            required: true,
+        },
+        rainrate_unit: {
+            type: String,
+            required: true,
+        },
+        dailyrain: {
+            type: Number,
+            required: true,
+        },
+        weeklyrain: {
+            type: Number,
+            required: true,
+        },
+        monthlyrain: {
+            type: Number,
+            required: true,
+        },
+        yearlyrain: {
+            type: Number,
+            required: true,
+        },
+        rain_unit: {
+            type: String,
+            required: true,
+        },
+        windspeed: {
+            type: Number,
+            required: true,
+        },
+        windgust: {
+            type: Number,
+            required: true,
+        },
+        wind_unit: {
+            type: String,
+            required: true,
+        },
+        winddir: {
+            type: Number,
+            required: true,
+        },
+        winddir_unit: {
+            type: String,
+            required: true,
+        },
+        pressurerel: {
+            type: Number,
+            required: true,
+        },
+        pressureabs: {
+            type: Number,
+            required: true,
+        },
+        pressure_unit: {
+            type: String,
+            required: true,
+        },
+        battery: {
+            type: Number,
+            required: true,
+        },
     },
-    dateutc: {
-        type: Date,
-        required: true,
+    {
+        autoCreate: true,
+        timestamps: true,
     },
-    temp: {
-        type: Number,
-        required: true,
-    },
-    sendible_temp: {
-        type: Number,
-        required: true,
-    },
-    drew_temp: {
-        type: Number,
-        required: true,
-    },
-    temp_unit: {
-        type: String,
-        required: true,
-    },
-    humidity: {
-        type: Number,
-        required: true,
-    },
-    humidity_unit: {
-        type: String,
-        required: true,
-    },
-    tempin: {
-        type: Number,
-        required: true,
-    },
-    tempin_unit: {
-        type: String,
-        required: true,
-    },
-    humidityin: {
-        type: Number,
-        required: true,
-    },
-    humidityin_unit: {
-        type: String,
-        required: true,
-    },
-    rainrate: {
-        type: Number,
-        required: true,
-    },
-    rainrate_unit: {
-        type: String,
-        required: true,
-    },
-    dailyrain: {
-        type: Number,
-        required: true,
-    },
-    weeklyrain: {
-        type: Number,
-        required: true,
-    },
-    monthlyrain: {
-        type: Number,
-        required: true,
-    },
-    yearlyrain: {
-        type: Number,
-        required: true,
-    },
-    rain_unit: {
-        type: String,
-        required: true,
-    },
-    windspeed: {
-        type: Number,
-        required: true,
-    },
-    windgust: {
-        type: Number,
-        required: true,
-    },
-    wind_unit: {
-        type: String,
-        required: true,
-    },
-    winddir: {
-        type: Number,
-        required: true,
-    },
-    winddir_unit: {
-        type: String,
-        required: true,
-    },
-    pressurerel: {
-        type: Number,
-        required: true,
-    },
-    pressureabs: {
-        type: Number,
-        required: true,
-    },
-    pressure_unit: {
-        type: String,
-        required: true,
-    },
-    battery: {
-        type: Number,
-        required: true,
-    },
-}, {
-    autoCreate: true,
-    timestamps: true,
-});
+);
 report.index({ dateutc: 1 }, { unique: true });
-
-exports.Report = mongoose.model('Report', report);
+export const Report = mongoose.model('Report', report);
