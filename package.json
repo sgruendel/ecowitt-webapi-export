@@ -25,14 +25,14 @@
     "homepage": "https://github.com/sgruendel/ecowitt-webapi-export#readme",
     "dependencies": {
         "moment": "^2.30.1",
-        "mongoose": "^8.5.1",
+        "mongoose": "^8.5.2",
         "node-fetch": "^3.3.2",
         "winston": "^3.13.1"
     },
     "devDependencies": {
-        "@types/node": "^22.0.0",
+        "@types/node": "^22.0.2",
         "chai": "^5.1.1",
-        "eslint": "^9.7.0",
+        "eslint": "^9.8.0",
         "eslint-config-strongloop": "^2.1.0"
     },
     "eslintConfig": {
