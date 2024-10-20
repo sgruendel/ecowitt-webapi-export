@@ -27,7 +27,7 @@ const APPLICATION_KEY = 'B74AF19568B841B142D4D6649D5FDCA2';
 const API_KEY = '8019c365-ec36-479a-9732-a7b7ae670218';
 const MAC = '88:4A:18:5B:79:1D';
 const BASE_URL_API = 'https://cdnapi.ecowitt.net/api/v3/';
-const BASE_URL_WEB = 'https://webapi.www.ecowitt.net/';
+const BASE_URL_WEB = 'https://www.ecowitt.net/';
 
 /**
  * @typedef {Object} LoginResponse
@@ -235,6 +235,8 @@ async function loginWeb(account, password) {
                     return cookiePart;
                 })
                 .join(';');
+        } else {
+            logger.error(data.errcode, data);
         }
     }
 }
