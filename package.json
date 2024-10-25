@@ -30,8 +30,8 @@
         "winston": "^3.15.0"
     },
     "devDependencies": {
-        "@types/node": "^22.7.7",
-        "chai": "^5.1.1",
+        "@types/node": "^22.7.9",
+        "chai": "^5.1.2",
         "eslint": "^9.13.0",
         "eslint-config-strongloop": "^2.1.0"
     },
