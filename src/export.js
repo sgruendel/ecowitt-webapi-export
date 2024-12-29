@@ -1,3 +1,4 @@
+import process from 'node:process';
 import moment from 'moment';
 import fetch from 'node-fetch';
 import http from 'http';
