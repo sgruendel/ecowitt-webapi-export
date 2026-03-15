@@ -10,8 +10,18 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const fixtureDir = __dirname;
 
+/**
+ * @typedef {import('../../src/ecowitt.js').EcowittRequestOptions} EcowittRequestOptions
+ * @typedef {import('../../src/ecowitt.js').EcowittResponse} EcowittResponse
+ */
+
+/**
+ * @param {any} json
+ * @param {{ ok?: boolean, status?: number, cookies?: string[] }} [options]
+ * @returns {EcowittResponse}
+ */
 function createJsonResponse(json, { ok = true, status = 200, cookies = [] } = {}) {
-    return {
+    return /** @type {EcowittResponse} */ ({
         ok,
         status,
         headers: {
@@ -24,7 +34,7 @@ function createJsonResponse(json, { ok = true, status = 200, cookies = [] } = {}
         async json() {
             return json;
         },
-    };
+    });
 }
 
 async function loadFixture(fileName) {
@@ -50,6 +60,7 @@ describe('ecowitt', function () {
     describe('loginWeb', function () {
         it('returns combined cookies from the login response', async function () {
             let capturedUrl;
+            /** @type {EcowittRequestOptions | undefined} */
             let capturedOptions;
 
             const cookies = await loginWeb({
@@ -72,6 +83,7 @@ describe('ecowitt', function () {
 
             expect(cookies).to.equal('session=abc;uid=123');
             expect(capturedUrl).to.equal('https://www.ecowitt.net/user/site/login');
+            expect(capturedOptions).to.not.equal(undefined);
             expect(capturedOptions.method).to.equal('POST');
             expect(capturedOptions.body.toString()).to.equal('account=demo%40example.com&password=secret');
         });
@@ -102,6 +114,7 @@ describe('ecowitt', function () {
     describe('fetchWeatherDay', function () {
         it('posts the expected params and cookie header for a day request', async function () {
             let capturedUrl;
+            /** @type {EcowittRequestOptions | undefined} */
             let capturedOptions;
 
             const dayFixture = await fetchWeatherDay({
@@ -117,6 +130,7 @@ describe('ecowitt', function () {
 
             expect(dayFixture).to.deep.equal(weatherDayOneFixture);
             expect(capturedUrl).to.equal('https://www.ecowitt.net/index/get_data');
+            expect(capturedOptions).to.not.equal(undefined);
             expect(capturedOptions.method).to.equal('POST');
             expect(capturedOptions.headers.cookie).to.equal('session=abc');
             expect(capturedOptions.body.toString()).to.equal(
@@ -128,7 +142,9 @@ describe('ecowitt', function () {
     describe('mapWeatherResponseToReports', function () {
         it('maps a real Ecowitt fixture into ReportData rows', function () {
             const reports = mapWeatherResponseToReports(78908, weatherDayOneFixture);
-            const firstValidIndex = weatherDayOneFixture.list.tempf.list.tempf.findIndex((value) => value && value !== '-');
+            const firstValidIndex = weatherDayOneFixture.list.tempf.list.tempf.findIndex(
+                (value) => value && value !== '-',
+            );
             const gustIndex = weatherDayOneFixture.list.wind_speed.list.windgustmph.findIndex(
                 (value) => value && value !== '0.0',
             );
@@ -143,8 +159,12 @@ describe('ecowitt', function () {
                 wind_unit: 'km/h',
                 rainrate_unit: 'mm/hr',
             });
-            expect(reports[0].dateutc.getTime()).to.equal(new Date(weatherDayOneFixture.times[firstValidIndex]).getTime());
-            expect(gustReport.windgust).to.equal(Number(weatherDayOneFixture.list.wind_speed.list.windgustmph[gustIndex]));
+            expect(reports[0].dateutc.getTime()).to.equal(
+                new Date(weatherDayOneFixture.times[firstValidIndex]).getTime(),
+            );
+            expect(gustReport.windgust).to.equal(
+                Number(weatherDayOneFixture.list.wind_speed.list.windgustmph[gustIndex]),
+            );
         });
 
         it('skips rows where the outdoor temperature is missing', function () {
@@ -155,8 +175,11 @@ describe('ecowitt', function () {
             const reports = mapWeatherResponseToReports(78908, mutatedFixture);
 
             expect(reports).to.have.lengthOf(countValidTemperatures(weatherDayOneFixture) - 1);
-            expect(reports.some((report) => report.dateutc.getTime() === new Date(mutatedFixture.times[firstValidIndex]).getTime())).to
-                .equal(false);
+            expect(
+                reports.some(
+                    (report) => report.dateutc.getTime() === new Date(mutatedFixture.times[firstValidIndex]).getTime(),
+                ),
+            ).to.equal(false);
         });
     });
 
@@ -183,7 +206,7 @@ describe('ecowitt', function () {
                 now: new Date('2026-03-15T00:00:00Z'),
                 fetchImpl: async (url, options) => {
                     calls.push({ url, options });
-                    return responses.shift();
+                    return responses.shift() ?? createJsonResponse({}, { ok: false, status: 500 });
                 },
             });
 

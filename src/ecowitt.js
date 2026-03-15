@@ -21,6 +21,43 @@ const noopLogger = {
 };
 
 /**
+ * @typedef {Object} EcowittLogger
+ * @property {(...args: any[]) => void} debug
+ * @property {(...args: any[]) => void} info
+ * @property {(...args: any[]) => void} warn
+ * @property {(...args: any[]) => void} error
+ */
+
+/**
+ * @typedef {{ raw?: () => { 'set-cookie'?: string[] } }} EcowittHeaders
+ */
+
+/**
+ * @typedef {Object} EcowittResponse
+ * @property {boolean} ok
+ * @property {number} status
+ * @property {EcowittHeaders} headers
+ * @property {() => Promise<any>} json
+ */
+
+/**
+ * @typedef {Object} EcowittRequestOptions
+ * @property {string} [method]
+ * @property {Record<string, string>} [headers]
+ * @property {URLSearchParams} [body]
+ * @property {(parsedUrl: URL) => http.Agent | https.Agent} [agent]
+ */
+
+/**
+ * @typedef {(url: URL | RequestInfo, init?: EcowittRequestOptions) => Promise<EcowittResponse>} EcowittFetch
+ */
+
+/**
+ * @typedef {Object} EcowittApiResult
+ * @property {string} errcode
+ */
+
+/**
  * @typedef {Object} ReportData
  * @property {number} deviceId
  * @property {Date} dateutc
@@ -52,14 +89,29 @@ const noopLogger = {
  * @property {number} battery
  */
 
+/**
+ * @typedef {Date | import('moment').Moment} EcowittDay
+ */
+
+/**
+ * @param {EcowittLogger | undefined} logger
+ * @returns {EcowittLogger}
+ */
 function getLogger(logger) {
     return logger ?? noopLogger;
 }
 
+/**
+ * @param {URL} parsedUrl
+ */
 function createAgent(parsedUrl) {
     return parsedUrl.protocol === 'http:' ? httpAgent : httpsAgent;
 }
 
+/**
+ * @param {EcowittRequestOptions} [options]
+ * @returns {EcowittRequestOptions}
+ */
 function createRequestOptions({ method = 'GET', headers = {}, body } = {}) {
     return {
         method,
@@ -69,6 +121,9 @@ function createRequestOptions({ method = 'GET', headers = {}, body } = {}) {
     };
 }
 
+/**
+ * @param {EcowittResponse} response
+ */
 function parseCookies(response) {
     const rawHeaders = response.headers?.raw?.();
     const setCookie = rawHeaders?.['set-cookie'];
@@ -124,6 +179,10 @@ export function listDaysToFetch(startDate, now = new Date()) {
     return days;
 }
 
+/**
+ * @param {number|string} deviceId
+ * @param {EcowittDay} day
+ */
 export function buildDailyParams(deviceId, day) {
     const currentDay = moment(day);
     const params = new URLSearchParams();
@@ -138,7 +197,24 @@ export function buildDailyParams(deviceId, day) {
     return params;
 }
 
-export async function loginWeb({ account, password, fetchImpl = fetch, logger, baseUrl = BASE_URL_WEB }) {
+/**
+ * @param {EcowittResponse} response
+ * @returns {Promise<EcowittApiResult & any>}
+ */
+async function parseJsonResponse(response) {
+    return /** @type {Promise<EcowittApiResult & any>} */ (response.json());
+}
+
+/**
+ * @param {{ account: string, password: string, fetchImpl?: EcowittFetch, logger?: EcowittLogger, baseUrl?: string }} options
+ */
+export async function loginWeb({
+    account,
+    password,
+    fetchImpl = /** @type {EcowittFetch} */ (fetch),
+    logger,
+    baseUrl = BASE_URL_WEB,
+}) {
     const activeLogger = getLogger(logger);
 
     if (!account || !password) {
@@ -157,7 +233,7 @@ export async function loginWeb({ account, password, fetchImpl = fetch, logger, b
         throw new Error('Ecowitt login failed with status ' + response.status);
     }
 
-    const data = await response.json();
+    const data = await parseJsonResponse(response);
     if (data.errcode !== '0') {
         activeLogger.error(data.errcode, data);
         throw new Error('Ecowitt login failed with errcode ' + data.errcode);
@@ -166,11 +242,14 @@ export async function loginWeb({ account, password, fetchImpl = fetch, logger, b
     return parseCookies(response);
 }
 
+/**
+ * @param {{ deviceId: number|string, day: EcowittDay, cookies: string, fetchImpl?: EcowittFetch, logger?: EcowittLogger, baseUrl?: string }} options
+ */
 export async function fetchWeatherDay({
     deviceId,
     day,
     cookies,
-    fetchImpl = fetch,
+    fetchImpl = /** @type {EcowittFetch} */ (fetch),
     logger,
     baseUrl = BASE_URL_WEB,
 }) {
@@ -202,7 +281,7 @@ export async function fetchWeatherDay({
         throw new Error('Ecowitt day fetch failed with status ' + response.status);
     }
 
-    const data = await response.json();
+    const data = await parseJsonResponse(response);
     if (data.errcode !== '0') {
         activeLogger.error(data.errcode, data);
         throw new Error('Ecowitt day fetch failed with errcode ' + data.errcode);
@@ -262,13 +341,16 @@ export function mapWeatherResponseToReports(deviceId, weatherData) {
     return reports;
 }
 
+/**
+ * @param {{ account: string, password: string, deviceId: number|string, startDate: Date, now?: Date, fetchImpl?: EcowittFetch, logger?: EcowittLogger, baseUrl?: string }} options
+ */
 export async function fetchReportsSince({
     account,
     password,
     deviceId,
     startDate,
     now = new Date(),
-    fetchImpl = fetch,
+    fetchImpl = /** @type {EcowittFetch} */ (fetch),
     logger,
     baseUrl = BASE_URL_WEB,
 }) {
