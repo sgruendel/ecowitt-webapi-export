@@ -182,6 +182,42 @@ function convertTempToF(t, unit) {
     }
 }
 
+/**
+ * @typedef {Object} ReportData
+ * @property {number} deviceId
+ * @property {Date} dateutc
+ * @property {number} temp
+ * @property {number} sendible_temp
+ * @property {number} drew_temp
+ * @property {string} temp_unit
+ * @property {number} humidity
+ * @property {string} humidity_unit
+ * @property {number} tempin
+ * @property {string} tempin_unit
+ * @property {number} humidityin
+ * @property {string} humidityin_unit
+ * @property {number} rainrate
+ * @property {string} rainrate_unit
+ * @property {number} dailyrain
+ * @property {number} weeklyrain
+ * @property {number} monthlyrain
+ * @property {number} yearlyrain
+ * @property {string} rain_unit
+ * @property {number} windspeed
+ * @property {number} windgust
+ * @property {string} wind_unit
+ * @property {number} winddir
+ * @property {string} winddir_unit
+ * @property {number} pressurerel
+ * @property {number} pressureabs
+ * @property {string} pressure_unit
+ * @property {number} battery
+ */
+
+function toNumber(value) {
+    return typeof value === 'number' ? value : Number(value);
+}
+
 async function exportDataRealApi(deviceId) {
     const options = {
         headers: {
@@ -282,53 +318,57 @@ async function exportDataWeb(account, password, deviceId) {
                         if (data.list.wind_speed.list.windgustmph[i]) {
                             data.list.wind_speed.list.windgustmph[i] = '0.0';
                         }
+                        const temp = data.list.tempf.list.tempf[i];
+
+                        if (temp === '-') {
+                            logger.info('skipping ' + i, temp);
+                            continue;
+                        }
+
+                        /** @type {ReportData} */
                         const report = {
-                            deviceId: deviceId,
-                            dateutc: data.times[i],
-                            temp: data.list.tempf.list.tempf[i],
-                            sendible_temp: data.list.tempf.list.sendible_temp[i],
-                            drew_temp: data.list.tempf.list.drew_temp[i],
+                            deviceId: toNumber(deviceId),
+                            dateutc: new Date(data.times[i]),
+                            temp: toNumber(temp),
+                            sendible_temp: toNumber(data.list.tempf.list.sendible_temp[i]),
+                            drew_temp: toNumber(data.list.tempf.list.drew_temp[i]),
                             temp_unit: data.list.tempf.units,
                             humidity: data.list.humidity.list.humidity[i],
                             humidity_unit: data.list.humidity.units,
-                            tempin: data.list.tempinf.list.tempinf[i],
+                            tempin: toNumber(data.list.tempinf.list.tempinf[i]),
                             tempin_unit: data.list.tempinf.units,
                             humidityin: data.list.humidityin.list.humidityin[i],
                             humidityin_unit: data.list.humidityin.units,
-                            rainrate: data.list.rain.list.rainratein[i],
+                            rainrate: toNumber(data.list.rain.list.rainratein[i]),
                             rainrate_unit: data.list.rain.units,
-                            dailyrain: data.list.rain.list.dailyrainin[i],
-                            weeklyrain: data.list.rain_statistcs.list.weeklyrainin[i],
-                            monthlyrain: data.list.rain_statistcs.list.monthlyrainin[i],
-                            yearlyrain: data.list.rain_statistcs.list.yearlyrainin[i],
+                            dailyrain: toNumber(data.list.rain.list.dailyrainin[i]),
+                            weeklyrain: toNumber(data.list.rain_statistcs.list.weeklyrainin[i]),
+                            monthlyrain: toNumber(data.list.rain_statistcs.list.monthlyrainin[i]),
+                            yearlyrain: toNumber(data.list.rain_statistcs.list.yearlyrainin[i]),
                             rain_unit: data.list.rain_statistcs.units,
-                            windspeed: data.list.wind_speed.list.windspeedmph[i],
-                            windgust: data.list.wind_speed.list.windgustmph[i],
+                            windspeed: toNumber(data.list.wind_speed.list.windspeedmph[i]),
+                            windgust: toNumber(data.list.wind_speed.list.windgustmph[i]),
                             wind_unit: data.list.wind_speed.units,
                             winddir: data.list.winddir.list.winddir[i],
                             winddir_unit: data.list.winddir.units,
-                            pressurerel: data.list.pressure.list.baromrelin[i],
-                            pressureabs: data.list.pressure.list.baromabsin[i],
+                            pressurerel: toNumber(data.list.pressure.list.baromrelin[i]),
+                            pressureabs: toNumber(data.list.pressure.list.baromabsin[i]),
                             pressure_unit: data.list.pressure.units,
-                            battery: data.list.ws1900batt_dash.list.ws1900batt[i],
+                            battery: toNumber(data.list.ws1900batt_dash.list.ws1900batt[i]),
                         };
 
-                        if (report.temp === '-') {
-                            logger.info('skipping ' + i, report);
-                        } else {
-                            const promise = db.Report.create(report)
-                                .then((doc) => logger.debug('inserted ' + doc.dateutc))
-                                .catch((err) => {
-                                    if (err.code === 11000) {
-                                        // logger.error('duplicate report for ' + report.dateutc);
-                                    } else {
-                                        logger.error('error writing report', err);
-                                        logger.error('report', report);
-                                        throw err;
-                                    }
-                                });
-                            allPromises.push(promise);
-                        }
+                        const promise = db.Report.create(report)
+                            .then((doc) => logger.debug('inserted ' + doc.dateutc))
+                            .catch((err) => {
+                                if (err.code === 11000) {
+                                    // logger.error('duplicate report for ' + report.dateutc);
+                                } else {
+                                    logger.error('error writing report', err);
+                                    logger.error('report', report);
+                                    throw err;
+                                }
+                            });
+                        allPromises.push(promise);
                     }
                 }
             } else {
