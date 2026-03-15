@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import moment from 'moment';
 import winston from 'winston';
 import process from 'node:process';
@@ -47,7 +48,7 @@ async function findMissingData() {
     db.disconnect();
 }
 
-async function findDuplicateData() {
+export async function findDuplicateData() {
     const pageSize = 1000;
     let start = 0;
     let reportstoRead = true;
