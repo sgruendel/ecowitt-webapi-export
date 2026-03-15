@@ -32,4 +32,4 @@ jobs:
               env:
                   ECOWITT_ACCOUNT: ${{ secrets.ECOWITT_ACCOUNT }}
                   ECOWITT_PASSWORD: ${{ secrets.ECOWITT_PASSWORD }}
-            - run: npm test
+              run: npm test
