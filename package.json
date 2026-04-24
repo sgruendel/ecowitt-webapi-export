@@ -26,7 +26,7 @@
     "dependencies": {
         "dotenv": "^17.4.2",
         "moment": "^2.30.1",
-        "mongoose": "^9.4.1",
+        "mongoose": "^9.5.0",
         "node-fetch": "^3.3.2",
         "winston": "^3.19.0"
     },
@@ -35,7 +35,7 @@
         "@types/node": "^24.12.2",
         "c8": "^11.0.0",
         "chai": "^6.2.2",
-        "eslint": "^10.2.0",
+        "eslint": "^10.2.1",
         "globals": "^17.5.0",
         "mocha": "^11.7.5"
     }
